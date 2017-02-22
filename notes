@@ -2,7 +2,7 @@ Have a Game model
 Have game rendering
 
 bricks -> rowsOfBrick -> brickRegion
-brick: x, y, w, h, color, hit
+brick: x, y, w, h, color, hit, value
 
 ball: direction(x,y), velocity?, position(x,y), width, height
 
@@ -14,4 +14,12 @@ score:
 
 lives_remaining:
 
+Game Simulation ______
+    update position of ball
+    collision detection tests
+        update the score
+        check against bricks
+        check against wall
+        check against paddle
+        check fall outside bottom
 
