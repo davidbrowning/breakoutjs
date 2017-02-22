@@ -1,0 +1,17 @@
+Have a Game model
+Have game rendering
+
+bricks -> rowsOfBrick -> brickRegion
+brick: x, y, w, h, color, hit
+
+ball: direction(x,y), velocity?, position(x,y), width, height
+
+walls:(ex or implicit)
+
+paddle: position(x,y), width, height, 
+
+score:
+
+lives_remaining:
+
+
