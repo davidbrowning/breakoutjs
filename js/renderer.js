@@ -53,6 +53,9 @@ MyGame.graphics = (function() {
 		};
 		image.src = spec.image;
 
+        var course = []
+
+
         that.getGameStatus = function(){
             return game_begin;
         }
@@ -81,6 +84,7 @@ MyGame.graphics = (function() {
             var new_center = spec.center.x - spec.moveRate * (elapsedTime/1000);
             if(new_center > 0){
 			    spec.center.x = new_center;            
+                course.push('l')
             }
 		};
 		
@@ -88,17 +92,85 @@ MyGame.graphics = (function() {
             var new_center = spec.center.x + spec.moveRate * (elapsedTime/1000);
             if(new_center < canvas.width){
 			    spec.center.x = new_center;            
+                course.push('r')
             }
             
 		};
 		
 		that.moveUp = function(elapsedTime) {
 			spec.center.y -= spec.moveRate * (elapsedTime / 1000);
+            course.push('u')
 		};
 		
 		that.moveDown = function(elapsedTime) {
 			spec.center.y += spec.moveRate * (elapsedTime / 1000);
+            course.push('d')
 		};
+
+
+        that.validMove = function(elapsedTime){
+            var d1 = course.pop()
+            var d2 = course.pop()
+            var test;
+            var passx = false;
+            var passy = false;
+            if(d1 == 'r'){
+                test = spec.center.x + spec.moveRate * (elapsedTime/1000);
+                if(test < canvas.width){
+                    passx = true;
+                    course.push(d1)
+                }
+                else{
+                    course.push('l')
+                }
+            }
+            else if(d1 == 'l'){
+                test = spec.center.x - spec.moveRate * (elapsedTime/1000);
+                if(test > 0){
+                    passx = true;
+                    course.push(d1)
+                }
+                else{
+                    course.push('r')
+                }
+            }
+            if(d2 == 'd'){
+                test = spec.center.y + spec.moveRate * (elapsedTime/1000);
+                if(test < canvas.width){
+                    passy = true;
+                    course.push(d2)
+                }
+                else{
+                    course.push('u')
+                }
+            }
+            else if(d2 == 'u'){
+                test = spec.center.y - spec.moveRate * (elapsedTime/1000);
+                if(test > 0){
+                    passx = true;
+                    course.push(d2)
+                }
+                else{
+                    course.push('d')
+                }
+            }
+            
+            
+
+        }
+
+        that.keepGoing = function(elapsedTime){
+
+        }
+
+        that.changeCourse = function(elapsedTime){
+
+        }
+        
+        that.move = function(elsapsedTime){
+            that.validMove()
+            //Was working here, pop the next two elements off the course array, then move accordingly.
+        }
 
         that.stickToPaddle = function(pos, elapsedTime){
             if(game_begin == false){
@@ -261,6 +333,9 @@ MyGame.main = (function(graphics, input) {
 		// Only we don't have anything to do here, kind of a boring game
         if(myBall.getGameStatus() == false){
             myBall.stickToPaddle(myTexture.getPosition(), elapsedTime)
+        }
+        else{
+            myBall.move(elapsedTime)    
         }
 	}
 
