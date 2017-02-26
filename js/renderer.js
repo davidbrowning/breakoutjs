@@ -53,12 +53,12 @@ MyGame.graphics = (function() {
 		};
 		image.src = spec.image;
 
-        var course = []
-
-
         that.getGameStatus = function(){
             return game_begin;
         }
+
+        that.current_x = 0
+        that.current_y = 0
 
         that.newGame = function(){
             game_begin = true
@@ -82,81 +82,67 @@ MyGame.graphics = (function() {
 			
 		that.moveLeft = function(elapsedTime) {
             var new_center = spec.center.x - spec.moveRate * (elapsedTime/1000);
-            if(new_center > 0){
+            if(new_center > 0 && that.current_x == 0){
 			    spec.center.x = new_center;            
-                course.push('l')
+            }
+            else{
+                var alt_center = spec.center.x + spec.moveRate * (elapsedTime/1000);
+                spec.center.x = alt_center
+                that.current_x = 1
             }
 		};
 		
 		that.moveRight = function(elapsedTime) {
             var new_center = spec.center.x + spec.moveRate * (elapsedTime/1000);
-            if(new_center < canvas.width){
+            if(new_center < canvas.width && that.current_x == 1){
 			    spec.center.x = new_center;            
-                course.push('r')
+            }
+            else{
+                var alt_center = spec.center.x - spec.moveRate * (elapsedTime/1000);
+			    spec.center.x = alt_center;            
+                that.current_x = 0
             }
             
 		};
 		
 		that.moveUp = function(elapsedTime) {
-			spec.center.y -= spec.moveRate * (elapsedTime / 1000);
-            course.push('u')
+            var new_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
+            if(new_center > 0 && that.current_y == 0){
+			    spec.center.y = new_center;            
+            }
+            else{
+                var alt_center = spec.center.y + spec.moveRate * (elapsedTime/1000);
+                spec.center.y = alt_center
+                that.current_y = 1
+            }
 		};
 		
 		that.moveDown = function(elapsedTime) {
-			spec.center.y += spec.moveRate * (elapsedTime / 1000);
-            course.push('d')
+            var new_center = spec.center.y + spec.moveRate * (elapsedTime/1000);
+            if(new_center < canvas.height && that.current_y == 1){
+			    spec.center.y = new_center;            
+            }
+            else{
+                var alt_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
+			    spec.center.y = alt_center;            
+                that.current_y = 0
+            }
 		};
 
 
         that.validMove = function(elapsedTime){
-            var d1 = course.pop()
-            var d2 = course.pop()
-            var test;
-            var passx = false;
-            var passy = false;
-            if(d1 == 'r'){
-                test = spec.center.x + spec.moveRate * (elapsedTime/1000);
-                if(test < canvas.width){
-                    passx = true;
-                    course.push(d1)
-                }
-                else{
-                    course.push('l')
-                }
+            if(that.current_x == 1){
+                that.moveRight(elapsedTime)
             }
-            else if(d1 == 'l'){
-                test = spec.center.x - spec.moveRate * (elapsedTime/1000);
-                if(test > 0){
-                    passx = true;
-                    course.push(d1)
-                }
-                else{
-                    course.push('r')
-                }
+            else{
+                that.moveLeft(elapsedTime)
             }
-            if(d2 == 'd'){
-                test = spec.center.y + spec.moveRate * (elapsedTime/1000);
-                if(test < canvas.width){
-                    passy = true;
-                    course.push(d2)
-                }
-                else{
-                    course.push('u')
-                }
+            if(that.current_y == 1){
+                that.moveDown(elapsedTime)
             }
-            else if(d2 == 'u'){
-                test = spec.center.y - spec.moveRate * (elapsedTime/1000);
-                if(test > 0){
-                    passx = true;
-                    course.push(d2)
-                }
-                else{
-                    course.push('d')
-                }
+            else{
+                that.moveUp(elapsedTime)
             }
-            
-            
-
         }
 
         that.keepGoing = function(elapsedTime){
@@ -167,8 +153,8 @@ MyGame.graphics = (function() {
 
         }
         
-        that.move = function(elsapsedTime){
-            that.validMove()
+        that.move = function(elapsedTime){
+            that.validMove(elapsedTime)
             //Was working here, pop the next two elements off the course array, then move accordingly.
         }
 
@@ -314,6 +300,7 @@ MyGame.main = (function(graphics, input) {
 			moveRate : 500,			// pixels per second
 			rotateRate : 3.14159	// Radians per second
 		});
+    myBall.newGame()
 
 	//------------------------------------------------------------------
 	//
@@ -335,6 +322,8 @@ MyGame.main = (function(graphics, input) {
             myBall.stickToPaddle(myTexture.getPosition(), elapsedTime)
         }
         else{
+            //console.log('move called')
+            myBall.validMove(elapsedTime)
             myBall.move(elapsedTime)    
         }
 	}
