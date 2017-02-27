@@ -79,6 +79,19 @@ MyGame.graphics = (function() {
 		that.rotateLeft = function(elapsedTime) {
 			spec.rotation -= spec.rotateRate * (elapsedTime / 1000);
 		};
+        that.checkPaddle = function(elapsedTime, x, w, new_center){
+            //new_center = spec.center.y + spec.moveRate * (elapsedTime/1000);
+            //console.log(Math.floor(spec.center.y)+'=='+canvas.height+' || '+Math.floor(spec.center.y)+ '==' +(canvas.height + 1))
+            if(Math.floor(spec.center.y) == canvas.height-120 || Math.floor(spec.center.y) == canvas.height - 119){
+                console.log('hit')
+                if(spec.center.x > x-(w/2) && spec.center.x < (x+(w/2))){
+                    var alt_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
+                    new_center = alt_center
+                    that.current_y = 0
+                    
+                }    
+            } 
+        }
 			
 		that.moveLeft = function(elapsedTime) {
             var new_center = spec.center.x - spec.moveRate * (elapsedTime/1000);
@@ -117,10 +130,11 @@ MyGame.graphics = (function() {
             }
 		};
 		
-		that.moveDown = function(elapsedTime) {
+		that.moveDown = function(elapsedTime, x, w) {
             var new_center = spec.center.y + spec.moveRate * (elapsedTime/1000);
             if(new_center < canvas.height && that.current_y == 1){
-			    spec.center.y = new_center;            
+                that.checkPaddle(elapsedTime, x, w, new_center)
+                spec.center.y = new_center;             
             }
             else{
                 var alt_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
@@ -130,7 +144,7 @@ MyGame.graphics = (function() {
 		};
 
 
-        that.validMove = function(elapsedTime){
+        that.validMove = function(elapsedTime, x, w){
             if(that.current_x == 1){
                 that.moveRight(elapsedTime)
             }
@@ -138,7 +152,7 @@ MyGame.graphics = (function() {
                 that.moveLeft(elapsedTime)
             }
             if(that.current_y == 1){
-                that.moveDown(elapsedTime)
+                that.moveDown(elapsedTime, x, w)
             }
             else{
                 that.moveUp(elapsedTime)
@@ -153,8 +167,11 @@ MyGame.graphics = (function() {
 
         }
         
-        that.move = function(elapsedTime){
-            that.validMove(elapsedTime)
+        that.move = function(elapsedTime, x, w){
+                if(x == undefined || w == undefined){
+                    alert('fucker')
+                }
+            that.validMove(elapsedTime, x, w)
             //Was working here, pop the next two elements off the course array, then move accordingly.
         }
 
@@ -217,6 +234,10 @@ MyGame.graphics = (function() {
 
         that.getPosition = function(){
             return spec.center.x
+        }
+
+        that.getWidth = function(){
+            return spec.width
         }
 		
 		that.rotateLeft = function(elapsedTime) {
@@ -297,7 +318,7 @@ MyGame.main = (function(graphics, input) {
 			image : 'images/Ball.png',
 			center : { x : 100, y : 375 },
 			width : 25, height : 25,
-			moveRate : 500,			// pixels per second
+			moveRate : 100,			// pixels per second
 			rotateRate : 3.14159	// Radians per second
 		});
     myBall.newGame()
@@ -323,8 +344,8 @@ MyGame.main = (function(graphics, input) {
         }
         else{
             //console.log('move called')
-            myBall.validMove(elapsedTime)
-            myBall.move(elapsedTime)    
+            myBall.validMove(elapsedTime, myTexture.getPosition(), myTexture.getWidth())
+            myBall.move(elapsedTime, myTexture.getPosition(), myTexture.getWidth())    
         }
 	}
 
