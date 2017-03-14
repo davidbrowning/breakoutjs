@@ -64,6 +64,13 @@ MyGame.graphics = (function() {
             game_begin = true
         }
 
+        that.flipY = function(){
+            if(that.current_y === 1){
+                that.current_y = 0;
+            }
+            else{that.current_y = 1}
+        }
+
         that.stopGame = function(){
             game_begin = false;
         }
@@ -141,13 +148,17 @@ MyGame.graphics = (function() {
             }
 		};
 
-        that.checkRow = function(mx, row){
+        that.checkRow = function(mx){
             //console.log(mx)
             //If I think about it, I might be able to derive an equation to 
             // get which two(?) bricks it could be colliding with
-            // spec.center.x (~50 for the sake of example) / canvas.width 500 = .1
-            // spec.center.x (~250) / canvas.width (500) = 
-
+            // spec.center.x (~50 for the sake of example) / canvas.width 500 * 10 = 1.
+            // spec.center.x (~250) / canvas.width (500) = .5 * 10 == 5. 
+            var cell = Math.floor((spec.center.x / canvas.width) *10)
+            if(mx[cell].getStatus()){
+                mx[cell].explode()
+                that.flipY()
+            }
         }
 
         that.checkCollisions = function(brickMatrix){
@@ -155,12 +166,17 @@ MyGame.graphics = (function() {
             //else, determine ball_x and check against row w/in ball_y
             if(typeof(brickMatrix)!='undefined'){
                 var row = 0
-                if(spec.center.y < 150 && spec.center.y > 130){console.log('blue');that.checkRow(brickMatrix[4])}    
-                if(spec.center.y < 130 && spec.center.y > 110){console.log('pink');that.checkRow(brickMatrix[3])}    
-                if(spec.center.y < 110 && spec.center.y > 90){console.log('yellow');that.checkRow(brickMatrix[2])}    
-                if(spec.center.y < 90 && spec.center.y > 70){console.log('green');that.checkRow(brickMatrix[1])}    
-                if(spec.center.y < 70 && spec.center.y > 50){console.log('red');that.checkRow(brickMatrix[0])}    
+                //if(spec.center.y < 150 && spec.center.y > 130){console.log('blue');that.checkRow(brickMatrix[4])}    
+                //if(spec.center.y < 130 && spec.center.y > 110){console.log('pink');that.checkRow(brickMatrix[3])}    
+                //if(spec.center.y < 110 && spec.center.y > 90){console.log('yellow');that.checkRow(brickMatrix[2])}    
+                //if(spec.center.y < 90 && spec.center.y > 70){console.log('green');that.checkRow(brickMatrix[1])}    
+                //if(spec.center.y < 70 && spec.center.y > 50){console.log('red');that.checkRow(brickMatrix[0])}    
                 //if(spec.center.y < 50){alert('top')}
+                if(spec.center.y < 135 && spec.center.y > 115){console.log('blue');that.checkRow(brickMatrix[4])}    
+                if(spec.center.y < 110 && spec.center.y > 90){console.log('pink');that.checkRow(brickMatrix[3])}    
+                if(spec.center.y < 85 && spec.center.y > 65){console.log('yellow');that.checkRow(brickMatrix[2])}    
+                if(spec.center.y < 60 && spec.center.y > 40){console.log('green');that.checkRow(brickMatrix[1])}    
+                if(spec.center.y < 35 && spec.center.y > 15){console.log('red');that.checkRow(brickMatrix[0])}    
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
             }
@@ -288,6 +304,7 @@ MyGame.graphics = (function() {
 			spec.center.y += spec.moveRate * (elapsedTime / 1000);
 		};
         
+
 		
 		that.draw = function() {
 			if (ready) {
@@ -327,11 +344,21 @@ MyGame.graphics = (function() {
             return spec.center.x
         }
 
+        that.erase = function(){
+            ready = false;
+        }
+
+        that.getStatus = function(){
+            return ready;
+        }
+
         that.getWidth = function(){
             return spec.width
         }
 		
         that.explode = function(){
+            //alert("you haven't written explode yet")
+            that.erase();
 
         }
 
