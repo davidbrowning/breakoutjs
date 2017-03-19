@@ -99,7 +99,7 @@ MyGame.graphics = (function() {
                     console.log('mid',paddle_mid,'left',paddle_left,'right',paddle_right);
                     if(spec.center.x > paddle_left && spec.center.x < paddle_mid){
                         that.current_x = 0;
-                        if(spec.center.x < ((paddle_mid - paddle_left)/2)+paddle_left && that.current_x_depth < 3){
+                        /*if(spec.center.x < ((paddle_mid - paddle_left)/2)+paddle_left && that.current_x_depth < 3){
                             //alert('augmenting depth')
                             that.current_x_depth++;
                         }
@@ -114,7 +114,7 @@ MyGame.graphics = (function() {
                         else if(that.current_x_depth > 1){
                             that.current_x_depth--;
                         }
-                        console.log("current depth", that.current_x_depth)
+                        console.log("current depth", that.current_x_depth)*/
                     }
                     else{
                         that.current_x = 1
@@ -126,26 +126,25 @@ MyGame.graphics = (function() {
                 }    
             } 
         }
-			
 		that.moveLeft = function(elapsedTime) {
-            var new_center = spec.center.x - spec.moveRate * (elapsedTime/1000);
+            var new_center = spec.center.x - spec.moveRate * (elapsedTime/spec.speed);
             if(new_center > 0 && that.current_x == 0){
 			    spec.center.x = new_center;            
             }
             else{
-                var alt_center = spec.center.x + spec.moveRate * (elapsedTime/1000);
+                var alt_center = spec.center.x + spec.moveRate * (elapsedTime/spec.speed);
                 spec.center.x = alt_center
                 that.current_x = 1
             }
 		};
 		
 		that.moveRight = function(elapsedTime) {
-            var new_center = spec.center.x + spec.moveRate * (elapsedTime/1000);
+            var new_center = spec.center.x + spec.moveRate * (elapsedTime/spec.speed);
             if(new_center < canvas.width && that.current_x == 1){
 			    spec.center.x = new_center;            
             }
             else{
-                var alt_center = spec.center.x - spec.moveRate * (elapsedTime/1000);
+                var alt_center = spec.center.x - spec.moveRate * (elapsedTime/spec.speed);
 			    spec.center.x = alt_center;            
                 that.current_x = 0
             }
@@ -153,29 +152,31 @@ MyGame.graphics = (function() {
 		};
 		
 		that.moveUp = function(elapsedTime) {
-            var new_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
+            var new_center = spec.center.y - spec.moveRate * (elapsedTime/spec.speed);
             if(new_center > 0 && that.current_y == 0){
 			    spec.center.y = new_center;            
             }
             else{
-                var alt_center = spec.center.y + spec.moveRate * (elapsedTime/1000);
+                var alt_center = spec.center.y + spec.moveRate * (elapsedTime/spec.speed);
                 spec.center.y = alt_center
                 that.current_y = 1
             }
 		};
 		
 		that.moveDown = function(elapsedTime, x, w) {
-            var new_center = spec.center.y + spec.moveRate * (elapsedTime/1000);
+            var new_center = spec.center.y + spec.moveRate * (elapsedTime/spec.speed);
             if(new_center < canvas.height && that.current_y == 1){
                 that.checkPaddle(elapsedTime, x, w, new_center)
                 spec.center.y = new_center;             
             }
             else{
-                var alt_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
+                var alt_center = spec.center.y - spec.moveRate * (elapsedTime/spec.speed);
 			    spec.center.y = alt_center;            
                 that.current_y = 0
             }
 		};
+
+        that.exp_count = 0;
 
         that.checkRow = function(mx){
             //console.log(mx)
@@ -186,6 +187,21 @@ MyGame.graphics = (function() {
             var cell = Math.floor((spec.center.x / canvas.width) *14)
             if(mx[cell].getStatus()){
                 mx[cell].explode()
+                that.exp_count++;
+                if(that.exp_count === 4){
+                    spec.speed = spec.speed - 200
+                }
+                if(that.exp_count === 12){
+                    spec.speed = spec.speed - 200;
+                }
+                if(that.exp_count === 36){
+                    spec.speed = spec.speed - 100;
+                }
+                if(that.exp_count === 62){
+                    spec.speed = spec.speed - 100;
+                }
+                console.log(spec.speed)
+                console.log(that.exp_count)
                 that.flipY()
             }
         }
@@ -204,6 +220,7 @@ MyGame.graphics = (function() {
                 if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0])}    
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
+                
             }
 
         }
@@ -212,22 +229,22 @@ MyGame.graphics = (function() {
             that.checkCollisions(brickMatrix)
             if(that.current_x == 1){
                 for(var i = 0; i < that.current_x_depth; i++){
-                    that.moveRight(elapsedTime)
+                    that.moveRight(elapsedTime,1000)
                 }
             }
             else{
                 for(var i = 0; i < that.current_x_depth; i++){
-                    that.moveLeft(elapsedTime)
+                    that.moveLeft(elapsedTime,1000)
                 }
             }
             if(that.current_y == 1){
                 for(var i = 0; i < that.current_y_depth; i++){
-                    that.moveDown(elapsedTime, x, w)
+                    that.moveDown(elapsedTime, x, w, 1000)
                 }
             }
             else{
                 for(var i = 0; i < that.current_y_depth; i++){
-                    that.moveUp(elapsedTime)
+                    that.moveUp(elapsedTime, 1000)
                 }
             }
         }
@@ -523,7 +540,8 @@ MyGame.main = (function(graphics, input) {
 			center : { x : 100, y : 375 },
 			width : 25, height : 25,
 			moveRate : 100,			// pixels per second
-			rotateRate : 3.14159	// Radians per second
+			rotateRate : 3.14159, // Radians per second
+            speed: 1000
 		});
 
 
