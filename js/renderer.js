@@ -58,7 +58,9 @@ MyGame.graphics = (function() {
         }
 
         that.current_x = 0
+        that.current_x_depth = 1
         that.current_y = 0
+        that.current_y_depth = 1
 
         that.newGame = function(){
             game_begin = true
@@ -90,6 +92,33 @@ MyGame.graphics = (function() {
             if(Math.floor(spec.center.y) == canvas.height-120 || Math.floor(spec.center.y) == canvas.height - 119){
                 //console.log('hit')
                 if(spec.center.x > x-(w/2) && spec.center.x < (x+(w/2))){
+                    //TODO if on left half of paddle go left, right? go right.
+                    var paddle_left = (x-(w/2));
+                    var paddle_mid = x; //?
+                    var paddle_right = (x+(w/2));
+                    console.log('mid',paddle_mid,'left',paddle_left,'right',paddle_right);
+                    if(spec.center.x > paddle_left && spec.center.x < paddle_mid){
+                        that.current_x = 0;
+                        if(spec.center.x < ((paddle_mid - paddle_left)/2)+paddle_left && that.current_x_depth < 3){
+                            //alert('augmenting depth')
+                            that.current_x_depth++;
+                        }
+                        else if(that.current_x_depth > 1){
+                            that.current_x_depth--;
+                        }
+                        //console.log(((paddle_mid + paddle_right)/2)+paddle_right)
+                        else if(spec.center.x > (((paddle_right - paddle_mid)/2) + paddle_mid) && that.current_x_depth < 3){
+                            //alert('augmenting depth')
+                            that.current_x_depth++;
+                        }
+                        else if(that.current_x_depth > 1){
+                            that.current_x_depth--;
+                        }
+                        console.log("current depth", that.current_x_depth)
+                    }
+                    else{
+                        that.current_x = 1
+                    }
                     var alt_center = spec.center.y - spec.moveRate * (elapsedTime/1000);
                     new_center = alt_center
                     that.current_y = 0
@@ -154,7 +183,7 @@ MyGame.graphics = (function() {
             // get which two(?) bricks it could be colliding with
             // spec.center.x (~50 for the sake of example) / canvas.width 500 * 10 = 1.
             // spec.center.x (~250) / canvas.width (500) = .5 * 10 == 5. 
-            var cell = Math.floor((spec.center.x / canvas.width) *10)
+            var cell = Math.floor((spec.center.x / canvas.width) *14)
             if(mx[cell].getStatus()){
                 mx[cell].explode()
                 that.flipY()
@@ -162,21 +191,17 @@ MyGame.graphics = (function() {
         }
 
         that.checkCollisions = function(brickMatrix){
-            //if ball_y is greater than the value of the lowest brick, return
-            //else, determine ball_x and check against row w/in ball_y
             if(typeof(brickMatrix)!='undefined'){
                 var row = 0
                 //if(spec.center.y < 150 && spec.center.y > 130){console.log('blue');that.checkRow(brickMatrix[4])}    
-                //if(spec.center.y < 130 && spec.center.y > 110){console.log('pink');that.checkRow(brickMatrix[3])}    
-                //if(spec.center.y < 110 && spec.center.y > 90){console.log('yellow');that.checkRow(brickMatrix[2])}    
-                //if(spec.center.y < 90 && spec.center.y > 70){console.log('green');that.checkRow(brickMatrix[1])}    
-                //if(spec.center.y < 70 && spec.center.y > 50){console.log('red');that.checkRow(brickMatrix[0])}    
-                //if(spec.center.y < 50){alert('top')}
-                if(spec.center.y < 135 && spec.center.y > 115){console.log('blue');that.checkRow(brickMatrix[4])}    
-                if(spec.center.y < 110 && spec.center.y > 90){console.log('pink');that.checkRow(brickMatrix[3])}    
-                if(spec.center.y < 85 && spec.center.y > 65){console.log('yellow');that.checkRow(brickMatrix[2])}    
-                if(spec.center.y < 60 && spec.center.y > 40){console.log('green');that.checkRow(brickMatrix[1])}    
-                if(spec.center.y < 35 && spec.center.y > 15){console.log('red');that.checkRow(brickMatrix[0])}    
+                if(spec.center.y < 210 && spec.center.y > 190){that.checkRow(brickMatrix[7])}    
+                if(spec.center.y < 185 && spec.center.y > 165){that.checkRow(brickMatrix[6])}    
+                if(spec.center.y < 160 && spec.center.y > 140){that.checkRow(brickMatrix[5])}    
+                if(spec.center.y < 135 && spec.center.y > 115){that.checkRow(brickMatrix[4])}    
+                if(spec.center.y < 110 && spec.center.y > 90){that.checkRow(brickMatrix[3])}    
+                if(spec.center.y < 85 && spec.center.y > 65){that.checkRow(brickMatrix[2])}    
+                if(spec.center.y < 60 && spec.center.y > 40){that.checkRow(brickMatrix[1])}    
+                if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0])}    
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
             }
@@ -186,16 +211,24 @@ MyGame.graphics = (function() {
         that.validMove = function(elapsedTime, x, w, brickMatrix){
             that.checkCollisions(brickMatrix)
             if(that.current_x == 1){
-                that.moveRight(elapsedTime)
+                for(var i = 0; i < that.current_x_depth; i++){
+                    that.moveRight(elapsedTime)
+                }
             }
             else{
-                that.moveLeft(elapsedTime)
+                for(var i = 0; i < that.current_x_depth; i++){
+                    that.moveLeft(elapsedTime)
+                }
             }
             if(that.current_y == 1){
-                that.moveDown(elapsedTime, x, w)
+                for(var i = 0; i < that.current_y_depth; i++){
+                    that.moveDown(elapsedTime, x, w)
+                }
             }
             else{
-                that.moveUp(elapsedTime)
+                for(var i = 0; i < that.current_y_depth; i++){
+                    that.moveUp(elapsedTime)
+                }
             }
         }
 
@@ -390,19 +423,31 @@ MyGame.graphics = (function() {
             
     
 		
-        for(var i = 0; i < 5; i++){
+        for(var i = 0; i < 8; i++){
             var img
             switch(i){
                 case 0:
                     img = 'images/brickRed.png' 
                     break;
-                case 1: 
-                    img = 'images/brickGreen.png' 
+                case 1:
+                    img = 'images/brickRed.png' 
                     break;
                 case 2: 
-                    img = 'images/brickOrange.png' 
+                    img = 'images/brickGreen.png' 
                     break;
                 case 3: 
+                    img = 'images/brickGreen.png' 
+                    break;
+                case 4: 
+                    img = 'images/brickOrange.png' 
+                    break;
+                case 5: 
+                    img = 'images/brickOrange.png' 
+                    break;
+                case 6: 
+                    img = 'images/brickPink.png' 
+                    break;
+                case 7: 
                     img = 'images/brickPink.png' 
                     break;
                 default: 
@@ -410,11 +455,11 @@ MyGame.graphics = (function() {
             }
             //console.log(img)
             mx.push(new Array())
-            for(var j = 0; j < 10; j++){
+            for(var j = 0; j < 14; j++){
                 mx[i].push(Brick({
 	        		image : img,
-	        		center : { x : (j+.5)*100, y : (i+1)*25 },
-	        		width : 95, height : 20,
+	        		center : { x : (j+.5)*72, y : (i+1)*25 },
+	        		width : 65, height : 20,
 	        		moveRate : 500,			// pixels per second
 	        		rotateRate : 3.14159	// Radians per second
 	        	}))
@@ -474,7 +519,7 @@ MyGame.main = (function(graphics, input) {
 
 
 	var	myBall = graphics.Ball( {
-			image : 'images/Ball.png',
+			image : 'images/ball2.png',
 			center : { x : 100, y : 375 },
 			width : 25, height : 25,
 			moveRate : 100,			// pixels per second
@@ -518,10 +563,10 @@ MyGame.main = (function(graphics, input) {
 	function render(elapsedTime) {
         if(Math.floor(elapsedTime) > 3){
 		    graphics.clear();
-        }
 		myTexture.draw();
         myBall.draw();
         myBricks.draw();
+        }
 	}
 
 	//------------------------------------------------------------------
