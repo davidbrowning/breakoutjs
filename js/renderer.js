@@ -61,6 +61,11 @@ MyGame.graphics = (function() {
         that.current_x_depth = 1
         that.current_y = 0
         that.current_y_depth = 1
+        that.split = false;
+
+        that.getSplit = function(){
+            return that.split
+        }
 
         that.newGame = function(){
             game_begin = true
@@ -217,7 +222,7 @@ MyGame.graphics = (function() {
                 if(spec.center.y < 110 && spec.center.y > 90){that.checkRow(brickMatrix[3])}    
                 if(spec.center.y < 85 && spec.center.y > 65){that.checkRow(brickMatrix[2])}    
                 if(spec.center.y < 60 && spec.center.y > 40){that.checkRow(brickMatrix[1])}    
-                if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0])}    
+                if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0]);that.split = true}    
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
                 
@@ -225,8 +230,8 @@ MyGame.graphics = (function() {
 
         }
 
-        that.validMove = function(elapsedTime, x, w, brickMatrix){
-            that.checkCollisions(brickMatrix)
+        that.validMove = function(elapsedTime, x, w, brickMatrix, paddle){
+            that.checkCollisions(brickMatrix,paddle)
             if(that.current_x == 1){
                 for(var i = 0; i < that.current_x_depth; i++){
                     that.moveRight(elapsedTime,1000)
@@ -257,8 +262,8 @@ MyGame.graphics = (function() {
 
         }
         
-        that.move = function(elapsedTime, x, w, brickMatrix){
-            that.validMove(elapsedTime, x, w, brickMatrix)
+        that.move = function(elapsedTime, x, w, brickMatrix,paddle){
+            that.validMove(elapsedTime, x, w, brickMatrix,paddle)
             
         }
 
@@ -315,6 +320,15 @@ MyGame.graphics = (function() {
 		};
 		image.src = spec.image;
 		
+        that.isSplit = false;
+
+        that.split = function(){
+            if(that.isSplit == false){
+                spec.width = spec.width/2
+                that.isSplit = true;
+            }
+        }
+
 		that.rotateRight = function(elapsedTime) {
 			spec.rotation += spec.rotateRate * (elapsedTime / 1000);
 		};
@@ -570,6 +584,9 @@ MyGame.main = (function(graphics, input) {
             //console.log('move called')
             myBall.validMove(elapsedTime, myTexture.getPosition(), myTexture.getWidth(), myBricks.getBricks())
             myBall.move(elapsedTime, myTexture.getPosition(), myTexture.getWidth())    
+            if(myBall.getSplit()){
+                myTexture.split()
+            }
         }
 	}
 
