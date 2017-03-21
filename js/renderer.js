@@ -620,6 +620,9 @@ MyGame.main = (function(graphics, input) {
 			rotateRate : 3.14159	// Radians per second
 		});
 
+    function setLastTimeStamp(){
+        lastTimeStamp = performance.now()
+    }
 
     var myBricks = graphics.BrickMatrix({
             mx : [[]]
@@ -754,7 +757,10 @@ MyGame.main = (function(graphics, input) {
 
 	//
 	// Get the game loop started
-	requestAnimationFrame(gameLoop);
+    MyGame.go = function(){
+        setLastTimeStamp()
+	    requestAnimationFrame(gameLoop);
+    }
  
 }(MyGame.graphics, MyGame.input));
 
