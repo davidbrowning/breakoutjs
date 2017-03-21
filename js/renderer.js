@@ -40,7 +40,17 @@ MyGame.graphics = (function() {
     // This is used to create the ball 
     //
     //------------------------------------------------------------------
+    function Score(spec){
+        var that = {}
 
+        that.draw = function(){
+            context.font = '12px serif';
+            context.fillStyle = 'rgb(255,255,255)'
+            context.fillText('Current Score: '+MyGame.current_score, canvas.width-100, canvas.height-20)
+        }
+
+        return that
+    }
 
 	function Ball(spec) {
 		var that = {},
@@ -102,7 +112,7 @@ MyGame.graphics = (function() {
                     var paddle_left = (x-(w/2));
                     var paddle_mid = x; //?
                     var paddle_right = (x+(w/2));
-                    console.log('mid',paddle_mid,'left',paddle_left,'right',paddle_right);
+                    //console.log('mid',paddle_mid,'left',paddle_left,'right',paddle_right);
                     if(spec.center.x > paddle_left && spec.center.x < paddle_mid){
                         that.current_x = 0;
                         /*if(spec.center.x < ((paddle_mid - paddle_left)/2)+paddle_left && that.current_x_depth < 3){
@@ -120,7 +130,7 @@ MyGame.graphics = (function() {
                         else if(that.current_x_depth > 1){
                             that.current_x_depth--;
                         }
-                        console.log("current depth", that.current_x_depth)*/
+                        //console.log("current depth", that.current_x_depth)*/
                     }
                     else{
                         that.current_x = 1
@@ -190,7 +200,7 @@ MyGame.graphics = (function() {
             return that.particle
         }
 
-        that.checkRow = function(mx){
+        that.checkRow = function(mx, points){
             //console.log(mx)
             //If I think about it, I might be able to derive an equation to 
             // get which two(?) bricks it could be colliding with
@@ -199,6 +209,7 @@ MyGame.graphics = (function() {
             var cell = Math.floor((spec.center.x / canvas.width) *14)
             if(mx[cell].getStatus()){
                 that.particle = mx[cell].explode()
+                MyGame.current_score += points;
                 that.exp_count++;
                 if(that.exp_count === 4){
                     spec.speed = spec.speed - 100
@@ -212,8 +223,8 @@ MyGame.graphics = (function() {
                 if(that.exp_count === 62){
                     spec.speed = spec.speed - 100;
                 }
-                console.log(spec.speed)
-                console.log(that.exp_count)
+                //console.log(spec.speed)
+                //console.log(that.exp_count)
                 that.flipY()
             }
         }
@@ -222,16 +233,17 @@ MyGame.graphics = (function() {
             if(typeof(brickMatrix)!='undefined'){
                 var row = 0
                 //if(spec.center.y < 150 && spec.center.y > 130){console.log('blue');that.checkRow(brickMatrix[4])}    
-                if(spec.center.y < 210 && spec.center.y > 190){that.checkRow(brickMatrix[7])}    
-                if(spec.center.y < 185 && spec.center.y > 165){that.checkRow(brickMatrix[6])}    
-                if(spec.center.y < 160 && spec.center.y > 140){that.checkRow(brickMatrix[5])}    
-                if(spec.center.y < 135 && spec.center.y > 115){that.checkRow(brickMatrix[4])}    
-                if(spec.center.y < 110 && spec.center.y > 90){that.checkRow(brickMatrix[3])}    
-                if(spec.center.y < 85 && spec.center.y > 65){that.checkRow(brickMatrix[2])}    
-                if(spec.center.y < 60 && spec.center.y > 40){that.checkRow(brickMatrix[1])}    
-                if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0]);that.split = true}    
+                if(spec.center.y < 210 && spec.center.y > 190){that.checkRow(brickMatrix[7], 1)}    
+                if(spec.center.y < 185 && spec.center.y > 165){that.checkRow(brickMatrix[6], 1)}    
+                if(spec.center.y < 160 && spec.center.y > 140){that.checkRow(brickMatrix[5], 2)}    
+                if(spec.center.y < 135 && spec.center.y > 115){that.checkRow(brickMatrix[4], 2)}    
+                if(spec.center.y < 110 && spec.center.y > 90){that.checkRow(brickMatrix[3], 3)}    
+                if(spec.center.y < 85 && spec.center.y > 65){that.checkRow(brickMatrix[2], 3)}    
+                if(spec.center.y < 60 && spec.center.y > 40){that.checkRow(brickMatrix[1], 5)}    
+                if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0], 5);that.split = true}    
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
+                console.log(MyGame.current_score)
                 
             }
 
@@ -444,7 +456,7 @@ MyGame.graphics = (function() {
                     rotation: 0,
                     lifetime:  Math.random() * 4    // seconds
                 };
-                console.log(p.position.x)
+                //console.log(p.position.x)
                
             that.erase();
             return([p.position.x, p.position.y])
@@ -595,6 +607,7 @@ MyGame.graphics = (function() {
 	return {
 		clear : clear,
 		Texture : Texture,
+        Score : Score,
         Ball : Ball,
         BrickMatrix : BrickMatrix,
         Particle : Particle
@@ -638,6 +651,7 @@ MyGame.main = (function(graphics, input) {
             speed: 1000
 		});
 
+    var myScore = graphics.Score();
 
     myBall.newGame(drawBricks)
 
@@ -719,6 +733,7 @@ MyGame.main = (function(graphics, input) {
 		myTexture.draw();
         myBall.draw();
         myBricks.draw();
+        myScore.draw();
         for(var particle = 0; particle < particles.length; particle++){
             particles[particle].draw()
         }
@@ -757,6 +772,7 @@ MyGame.main = (function(graphics, input) {
 
 	//
 	// Get the game loop started
+    MyGame.current_score = 0;
     MyGame.go = function(){
         setLastTimeStamp()
 	    requestAnimationFrame(gameLoop);
