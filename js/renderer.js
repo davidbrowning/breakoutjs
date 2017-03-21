@@ -183,6 +183,12 @@ MyGame.graphics = (function() {
 
         that.exp_count = 0;
 
+        that.particle = {}
+
+        that.getParticle = function(){
+            return that.particle
+        }
+
         that.checkRow = function(mx){
             //console.log(mx)
             //If I think about it, I might be able to derive an equation to 
@@ -191,13 +197,13 @@ MyGame.graphics = (function() {
             // spec.center.x (~250) / canvas.width (500) = .5 * 10 == 5. 
             var cell = Math.floor((spec.center.x / canvas.width) *14)
             if(mx[cell].getStatus()){
-                mx[cell].explode()
+                that.particle = mx[cell].explode()
                 that.exp_count++;
                 if(that.exp_count === 4){
-                    spec.speed = spec.speed - 200
+                    spec.speed = spec.speed - 100
                 }
                 if(that.exp_count === 12){
-                    spec.speed = spec.speed - 200;
+                    spec.speed = spec.speed - 100;
                 }
                 if(that.exp_count === 36){
                     spec.speed = spec.speed - 100;
@@ -421,8 +427,26 @@ MyGame.graphics = (function() {
         }
 		
         that.explode = function(){
-            //alert("you haven't written explode yet")
+            var particle = 0,
+                aliveParticles = [],
+                negX,
+                negY,
+                p;
+        
+            for (particle = 0; particle < 8; particle++) {
+                negX = Math.random() < 0.5 ? 1 : -1;
+                negY = Math.random() < 0.5 ? 1 : -1;
+                p = {
+                    position: {x: spec.center.x, y: spec.center.y},
+                    direction: {x: Math.random() * negX, y: Math.random() * negY},
+                    speed: Math.random() * 100, // pixels per second
+                    rotation: 0,
+                    lifetime:  Math.random() * 4    // seconds
+                };
+               
+            }
             that.erase();
+            return(p)
 
         }
 
@@ -515,12 +539,61 @@ MyGame.graphics = (function() {
         return that;
     }
 
+    function Particle(spec) {
+        var that = {};
+        
+        spec.width = 10;
+        spec.height = 10;
+        spec.fill = 'rgba(255, 255, 255, 1)'; 
+        spec.stroke = 'rgba(0, 0, 0, 1)';
+        spec.alive = 0;
+        
+        that.update = function(elapsedTime) {
+            //
+            // We work with time in seconds, elapsedTime comes in as milliseconds
+            elapsedTime = elapsedTime / 1000;
+            //
+            // Update how long it has been alive
+            spec.alive += elapsedTime;
+            
+            //
+            // Update its position
+            spec.position.x += (elapsedTime * spec.speed * spec.direction.x);
+            spec.position.y += (elapsedTime * spec.speed * spec.direction.y);
+            
+            //
+            // Rotate proportional to its speed
+            spec.rotation += spec.speed / 500;
+            
+            //
+            // Return true if this particle is still alive
+            return (spec.alive < spec.lifetime);
+        };
+
+        that.draw = function() {
+            context.save();
+            context.translate(spec.position.x + spec.width / 2, spec.position.y + spec.height / 2);
+            context.rotate(spec.rotation);
+            context.translate(-(spec.position.x + spec.width / 2), -(spec.position.y + spec.height / 2));
+            
+            context.fillStyle = spec.fill;
+            context.fillRect(spec.position.x, spec.position.y, spec.width, spec.height);
+            
+            context.strokeStyle = spec.stroke;
+            context.strokeRect(spec.position.x, spec.position.y, spec.width, spec.height);
+
+            context.restore();
+        };
+        
+        return that;
+    }
 
 	return {
 		clear : clear,
 		Texture : Texture,
         Ball : Ball,
         BrickMatrix : BrickMatrix,
+        Particle : Particle
 	};
 }());
 
@@ -582,6 +655,8 @@ MyGame.main = (function(graphics, input) {
         }
         else{
             //console.log('move called')
+            var p = graphics.Particle(myBall.getParticle())
+            console.log(p)
             myBall.validMove(elapsedTime, myTexture.getPosition(), myTexture.getWidth(), myBricks.getBricks())
             myBall.move(elapsedTime, myTexture.getPosition(), myTexture.getWidth())    
             if(myBall.getSplit()){
