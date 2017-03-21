@@ -95,7 +95,7 @@ MyGame.graphics = (function() {
 			spec.rotation -= spec.rotateRate * (elapsedTime / 1000);
 		};
         that.checkPaddle = function(elapsedTime, x, w, new_center){
-            if(Math.floor(spec.center.y) == canvas.height-120 || Math.floor(spec.center.y) == canvas.height - 119){
+            if(Math.floor(spec.center.y) > canvas.height-120 && Math.floor(spec.center.y) < canvas.height - 115){
                 //console.log('hit')
                 if(spec.center.x > x-(w/2) && spec.center.x < (x+(w/2))){
                     //TODO if on left half of paddle go left, right? go right.
