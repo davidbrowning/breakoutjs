@@ -8,6 +8,7 @@
 // ------------------------------------------------------------------
 MyGame.graphics = (function() {
 	'use strict';
+    var stop = false
 	
 	var canvas = document.getElementById('canvas'),
 		context = canvas.getContext('2d');
@@ -433,20 +434,20 @@ MyGame.graphics = (function() {
                 negY,
                 p;
         
-            for (particle = 0; particle < 8; particle++) {
                 negX = Math.random() < 0.5 ? 1 : -1;
                 negY = Math.random() < 0.5 ? 1 : -1;
                 p = {
+                    getPosition : function(){return this.position},
                     position: {x: spec.center.x, y: spec.center.y},
                     direction: {x: Math.random() * negX, y: Math.random() * negY},
-                    speed: Math.random() * 100, // pixels per second
+                    speed: Math.random() * 1, // pixels per second
                     rotation: 0,
                     lifetime:  Math.random() * 4    // seconds
                 };
+                console.log(p.position.x)
                
-            }
             that.erase();
-            return(p)
+            return([p.position.x, p.position.y])
 
         }
 
@@ -547,7 +548,10 @@ MyGame.graphics = (function() {
         spec.fill = 'rgba(255, 255, 255, 1)'; 
         spec.stroke = 'rgba(0, 0, 0, 1)';
         spec.alive = 0;
-        
+        that.getPosition = function(){
+            return spec.position.x
+        }
+
         that.update = function(elapsedTime) {
             //
             // We work with time in seconds, elapsedTime comes in as milliseconds
@@ -643,6 +647,10 @@ MyGame.main = (function(graphics, input) {
 		myKeyboard.update(elapsedTime);
 	}
 	
+    var particles = [],
+        lastTimeStamp = performance.now();
+
+
 	//------------------------------------------------------------------
 	//
 	// Update the state of the "model" based upon time.
@@ -655,8 +663,40 @@ MyGame.main = (function(graphics, input) {
         }
         else{
             //console.log('move called')
-            var p = graphics.Particle(myBall.getParticle())
-            console.log(p)
+            var p = myBall.getParticle()
+            var particle = 0,
+                aliveParticles = [],
+                negX,
+                negY,
+                p1;
+
+                aliveParticles.length = 0;
+                for (particle = 0; particle < particles.length; particle++) {
+                    //
+                    // A return value of true indicates this particle is still alive
+                    if (particles[particle].update(elapsedTime)) {
+                        aliveParticles.push(particles[particle]);
+                    }
+                }
+                particles = aliveParticles;
+
+                //
+                // Generate some new particles
+                for (particle = 0; particle < 8; particle++) {
+                    negX = Math.random() < 0.5 ? 1 : -1;
+                    negY = Math.random() < 0.95 ? 1 : -1;
+                    graphics.stop = true;
+                    p1 = {
+                        position: {x: p[0], y: p[1]},
+                        direction: {x: Math.random() * negX, y: Math.random() * negY},
+                        speed: Math.random() * 20, // pixels per second
+                        rotation: 4,
+                        lifetime:  Math.random() *2     // seconds
+                    };
+                    
+                    particles.push(graphics.Particle(p1));
+                }
+
             myBall.validMove(elapsedTime, myTexture.getPosition(), myTexture.getWidth(), myBricks.getBricks())
             myBall.move(elapsedTime, myTexture.getPosition(), myTexture.getWidth())    
             if(myBall.getSplit()){
@@ -676,6 +716,10 @@ MyGame.main = (function(graphics, input) {
 		myTexture.draw();
         myBall.draw();
         myBricks.draw();
+        for(var particle = 0; particle < particles.length; particle++){
+            particles[particle].draw()
+        }
+        
         }
 	}
 
@@ -692,8 +736,9 @@ MyGame.main = (function(graphics, input) {
 		processInput(elapsedTime);
 		update(elapsedTime);
 		render(elapsedTime);
-
+        //if(graphics.stop === false){
 		requestAnimationFrame(gameLoop);
+        //}
 	};
 
 	console.log('game initializing...');
