@@ -52,6 +52,26 @@ MyGame.graphics = (function() {
         return that
     }
 
+    function CountDown(spec){
+        var that = {}
+        
+        that.decrement = function(){
+            spec.count--;
+        }
+
+        that.setValue = function(x){
+            spec.count = x
+        }
+
+        that.draw = function(){
+            context.font = '50px serif';
+            context.fillStyle = 'rgb(255,255,255)'
+            context.fillText(spec.count, canvas.width/2, canvas.height/2)
+        }
+
+        return that
+    }
+
 	function Ball(spec) {
 		var that = {},
 			ready = false,
@@ -188,7 +208,12 @@ MyGame.graphics = (function() {
             else{
                 var alt_center = spec.center.y - spec.moveRate * (elapsedTime/spec.speed);
 			    spec.center.y = alt_center;            
-                that.current_y = 0
+                //that.current_y = 0
+                that.current_x = -1
+
+            }
+            if(that.current_x == -1){
+                MyGame.stop = true;
             }
 		};
 
@@ -201,11 +226,6 @@ MyGame.graphics = (function() {
         }
 
         that.checkRow = function(mx, points){
-            //console.log(mx)
-            //If I think about it, I might be able to derive an equation to 
-            // get which two(?) bricks it could be colliding with
-            // spec.center.x (~50 for the sake of example) / canvas.width 500 * 10 = 1.
-            // spec.center.x (~250) / canvas.width (500) = .5 * 10 == 5. 
             var cell = Math.floor((spec.center.x / canvas.width) *14)
             if(mx[cell].getStatus()){
                 that.particle = mx[cell].explode()
@@ -243,7 +263,7 @@ MyGame.graphics = (function() {
                 if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0], 5);that.split = true}    
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
-                console.log(MyGame.current_score)
+                //console.log(MyGame.current_score)
                 
             }
 
@@ -555,9 +575,9 @@ MyGame.graphics = (function() {
     function Particle(spec) {
         var that = {};
         
-        spec.width = 10;
-        spec.height = 10;
-        spec.fill = 'rgba(255, 255, 255, 1)'; 
+        spec.width = (Math.random() * 20);
+        spec.height = (Math.random() * 5);
+        spec.fill = 'rgba(100, 0, 255, .75)'; 
         spec.stroke = 'rgba(0, 0, 0, 1)';
         spec.alive = 0;
         that.getPosition = function(){
@@ -608,6 +628,7 @@ MyGame.graphics = (function() {
 		clear : clear,
 		Texture : Texture,
         Score : Score,
+        CountDown : CountDown,
         Ball : Ball,
         BrickMatrix : BrickMatrix,
         Particle : Particle
@@ -640,7 +661,9 @@ MyGame.main = (function(graphics, input) {
     var myBricks = graphics.BrickMatrix({
             mx : [[]]
         });
-
+    var myCount = graphics.CountDown({
+        count :3
+        })
 
 	var	myBall = graphics.Ball( {
 			image : 'images/ball2.png',
@@ -734,6 +757,9 @@ MyGame.main = (function(graphics, input) {
         myBall.draw();
         myBricks.draw();
         myScore.draw();
+        if(MyGame.TotalTime < 3){
+            myCount.draw();
+        }
         for(var particle = 0; particle < particles.length; particle++){
             particles[particle].draw()
         }
@@ -741,24 +767,62 @@ MyGame.main = (function(graphics, input) {
         }
 	}
 
+    MyGame.TotalTime = 0;
+    MyGame.lives = 3;
+    MyGame.stop = false;
+    MyGame.gameover = function(){
+        alert("Game Over!")
+    }
+
 	//------------------------------------------------------------------
 	//
 	// This is the Game Loop function!
 	//
+    //
 	//------------------------------------------------------------------
 	function gameLoop(time) {
 
 		var elapsedTime = time - lastTimeStamp;
 		lastTimeStamp = time;
-
+        MyGame.TotalTime += elapsedTime/1000;
+        var secondsPassed = Math.floor(MyGame.TotalTime)
+        if(MyGame.TotalTime > 3){
+		    update(elapsedTime);
+        }
+        else{
+            myCount.setValue(3 - secondsPassed)
+        }
 		processInput(elapsedTime);
-		update(elapsedTime);
 		render(elapsedTime);
-        //if(graphics.stop === false){
-		requestAnimationFrame(gameLoop);
-        //}
+        if(MyGame.stop === false){
+		    requestAnimationFrame(gameLoop);
+        }
+        else{
+            MyGame.lives--;
+            if(MyGame.lives < 1){
+                MyGame.gameover()
+            }
+            else{
+                MyGame.nextLife()
+            }
+        }
 	};
 
+    MyGame.nextLife = function(){
+        MyGame.stop = false;
+	    myBall = graphics.Ball( {
+	   	    image : 'images/ball2.png',
+	   	    center : { x : 100, y : 375 },
+	   	    width : 25, height : 25,
+	   	    moveRate : 100,			// pixels per second
+	   	    rotateRate : 3.14159, // Radians per second
+            speed: 1000
+	    });
+        myBall.newGame(drawBricks)
+        MyGame.TotalTime = 0;
+        requestAnimationFrame(gameLoop);
+    
+    }
 	console.log('game initializing...');
 	
 	//
@@ -775,7 +839,7 @@ MyGame.main = (function(graphics, input) {
     MyGame.current_score = 0;
     MyGame.go = function(){
         setLastTimeStamp()
-	    requestAnimationFrame(gameLoop);
+        requestAnimationFrame(gameLoop)    
     }
  
 }(MyGame.graphics, MyGame.input));
