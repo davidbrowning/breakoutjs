@@ -243,6 +243,9 @@ MyGame.graphics = (function() {
                 if(that.exp_count === 62){
                     spec.speed = spec.speed - 100;
                 }
+                if(that.exp_count === 112){
+                    MyGame.gameover()
+                }
                 //console.log(spec.speed)
                 //console.log(that.exp_count)
                 that.flipY()
@@ -261,6 +264,7 @@ MyGame.graphics = (function() {
                 if(spec.center.y < 85 && spec.center.y > 65){that.checkRow(brickMatrix[2], 3)}    
                 if(spec.center.y < 60 && spec.center.y > 40){that.checkRow(brickMatrix[1], 5)}    
                 if(spec.center.y < 35 && spec.center.y > 15){that.checkRow(brickMatrix[0], 5);that.split = true}    
+                
                     
                 //console.log('x:',spec.center.x, 'y',spec.center.y);
                 //console.log(MyGame.current_score)
@@ -441,6 +445,7 @@ MyGame.graphics = (function() {
 		image.onload = function() { 
 			ready = true;
 		};
+
 		image.src = spec.image;
 		
         that.getPosition = function(){
@@ -624,6 +629,39 @@ MyGame.graphics = (function() {
         return that;
     }
 
+function Lives(spec){
+    var that = {},
+    ready = false,
+    image = new Image();
+
+		image.onload = function() { 
+			ready = true;
+		};
+    image.src = spec.image;
+    that.draw = function(){
+				context.save();
+				
+				context.translate(spec.center.x, spec.center.y);
+				context.rotate(spec.rotation);
+				context.translate(-spec.center.x, -spec.center.y);
+				
+                for(var i = 0; i < MyGame.lives; i++){
+				context.drawImage(
+					image, 
+					canvas.width - (spec.width * (i + 2)), 
+					spec.height/4,
+					spec.width - 10, 5);
+				
+				context.restore();
+                }
+
+
+    }
+
+    return that;
+    }
+
+
 	return {
 		clear : clear,
 		Texture : Texture,
@@ -631,7 +669,8 @@ MyGame.graphics = (function() {
         CountDown : CountDown,
         Ball : Ball,
         BrickMatrix : BrickMatrix,
-        Particle : Particle
+        Particle : Particle,
+        Lives : Lives
 	};
 }());
 
@@ -640,6 +679,7 @@ MyGame.graphics = (function() {
 // This function performs the one-time game initialization.
 //
 //------------------------------------------------------------------
+
 MyGame.main = (function(graphics, input) {
 	'use strict';
 
@@ -665,6 +705,12 @@ MyGame.main = (function(graphics, input) {
         count :3
         })
 
+    var myLives = graphics.Lives({
+	        		image : 'images/paddle.png', 
+	        		center : { x :1, y : 10 },
+	        		width : 75, height : 20
+	        	});
+
 	var	myBall = graphics.Ball( {
 			image : 'images/ball2.png',
 			center : { x : 100, y : 375 },
@@ -677,6 +723,8 @@ MyGame.main = (function(graphics, input) {
     var myScore = graphics.Score();
 
     myBall.newGame(drawBricks)
+
+        
 
 	//------------------------------------------------------------------
 	//
@@ -757,6 +805,8 @@ MyGame.main = (function(graphics, input) {
         myBall.draw();
         myBricks.draw();
         myScore.draw();
+        //console.log(myLives)
+        myLives.draw();
         if(MyGame.TotalTime < 3){
             myCount.draw();
         }
@@ -771,7 +821,8 @@ MyGame.main = (function(graphics, input) {
     MyGame.lives = 3;
     MyGame.stop = false;
     MyGame.gameover = function(){
-        alert("Game Over!")
+        var person = prompt("Please enter your name");
+        MyGame.persistence.add(person, MyGame.current_score)
     }
 
 	//------------------------------------------------------------------
@@ -812,7 +863,7 @@ MyGame.main = (function(graphics, input) {
         MyGame.stop = false;
 	    myBall = graphics.Ball( {
 	   	    image : 'images/ball2.png',
-	   	    center : { x : 100, y : 375 },
+	   	    center : { x : myTexture.getPosition(), y : 375 },
 	   	    width : 25, height : 25,
 	   	    moveRate : 100,			// pixels per second
 	   	    rotateRate : 3.14159, // Radians per second

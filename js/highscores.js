@@ -21,6 +21,7 @@ MyGame.screens['high-scores'] = (function(game) {
 }(MyGame.game));
 
 
+
 MyGame.persistence = (function () {
         'use strict';
         var highScores = {},
@@ -30,7 +31,16 @@ MyGame.persistence = (function () {
         }
 
         function add(key, value) {
-            highScores[key] = value;
+            for (var keys in highScores){
+                if(highScores[keys] < value){
+                    highScores[key] = value;
+                    delete highScores[keys]
+                    break;
+                }    
+                else{
+                    highScores[key] = value;    
+                }
+            }
             localStorage['MyGame.highScores'] = JSON.stringify(highScores);
         }
 
